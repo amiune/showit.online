@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShowIt.Online</title>
+    <!-- Load Pico.css from CDN for styling -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body>
+    <!-- Main container for Pico.css styling -->
+    <main class="container">
+        <article>
+            <h1 class="text-center">ShowIt.Online!</h1>
+
+            <!-- Input section for the original URL/string -->
+            <label for="inputString">
+                Paste the Github raw URL of your markdown file:
+                <textarea id="inputString"
+                          placeholder="e.g., https://raw.githubusercontent.com/amiune/amiune.github.io/refs/heads/master/cv/hernan-amiune-se-cv-one-page.md"></textarea>
+            </label>
+
+            <!-- Action buttons for encoding and decoding -->
+            <div class="button-group">
+                <button id="encodeButton">
+                    Create my URL to share
+                </button>
+            </div>
+
+            <!-- Output section for the encoded string -->
+            <label for="outputEncodedString">
+                Share this URL with anyone you want:
+                <textarea id="outputEncodedString" readonly
+                          placeholder="Your encoded string will appear here."></textarea>
+            </label>
+
+        </article>
+    </main>
+
+    <script>
+        // --- UI Elements and Event Listeners ---
+        // Get references to all necessary DOM elements
+        const inputString = document.getElementById('inputString');
+        const encodeButton = document.getElementById('encodeButton');
+        const outputEncodedString = document.getElementById('outputEncodedString');
+
+
+        // Event listener for the Encode button click
+        encodeButton.addEventListener('click', () => {
+            const str = inputString.value.trim(); // Get and trim the input string
+            if (str) {
+                // Use encodeURIComponent for URL-safe encoding
+                var encoded = encodeURIComponent(str);
+				encoded = "https://showit.online/#!url=" + encoded + "&theme=dark";
+                outputEncodedString.value = encoded; // Display the encoded string
+				var url = window.location.href;
+				url = encoded;
+				if(url.includes("#!")){
+					const queryParams = new URLSearchParams(url.split("#!")[1]);
+					const decoded = decodeURIComponent(queryParams.get("url"));
+					console.log(decoded)
+					console.log(queryParams.get("theme"))
+				}
+            }
+        });
+
+        // Pre-fill the input with an example GitHub raw URL when the window loads
+        window.onload = () => {
+            inputString.value = "https://raw.githubusercontent.com/amiune/amiune.github.io/refs/heads/master/cv/hernan-amiune-se-cv-one-page.md?param=value with spaces&another=test";
+        };
+
+    </script>
+</body>
+</html>
