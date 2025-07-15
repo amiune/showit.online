@@ -1,74 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ShowIt.Online</title>
-    <!-- Load Pico.css from CDN for styling -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-</head>
-<body>
-    <!-- Main container for Pico.css styling -->
-    <main class="container">
-        <article>
-            <h1 class="text-center">ShowIt.Online!</h1>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.min.css" />
+    <style>
+	  header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header nav ul {
+        margin: 0;
+      }
+	  main {
+        margin-top: 2rem;
+        text-align: center;
+		max-width: 800px;
+      }
+	  .hero p{
+	  max-width: 600px;
+	  margin: 0 auto;
+	  }
+	  .form{
+	     margin-top: 1rem;
+	  }
+      footer {
+        text-align: center;
+        margin-top: 2rem;
+      }
+	  #outputURL{
+	      margin-top: 1rem;
+	  }
+    </style>
+  </head>
+  <body>
 
-            <!-- Input section for the original URL/string -->
-            <label for="inputString">
-                Paste the Github raw URL of your markdown file:
-                <textarea id="inputString"
-                          placeholder="e.g., https://raw.githubusercontent.com/amiune/amiune.github.io/refs/heads/master/cv/hernan-amiune-se-cv-one-page.md"></textarea>
-            </label>
+    <div id="content">
+	<header class="container">
+      <a href="#" class="contrast">ShowIt.Online</a>
+      <nav>
+        <ul>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+      </nav>
+    </header>
+	
+	<main class="container">
+        <div class="hero">
+			<h1>A pretty and easy way to share markdown files</h1>
+			<p>
+			Just copy and paste the url of your markdown file from github and get a url to share it in a pretty and easy way. 
+			Ideal to share study notes, creating a landing page or even a mini website.
+			</p>
+			<p>✔️ No ads and free forever</p>
+	    </div>
 
-            <!-- Action buttons for encoding and decoding -->
-            <div class="button-group">
-                <button id="encodeButton">
-                    Create my URL to share
-                </button>
-            </div>
-
-            <!-- Output section for the encoded string -->
-            <label for="outputEncodedString">
-                Share this URL with anyone you want:
-                <textarea id="outputEncodedString" readonly
-                          placeholder="Your encoded string will appear here."></textarea>
-            </label>
-
-        </article>
+        <div class="form">
+			<textarea id="inputString" 
+			placeholder="Paste your markdown url, like: https://raw.githubusercontent.com/amiune/showit.online/refs/heads/main/README.md"></textarea>
+			<button id="encodeButton">Create my URL to share</button>
+			<div id="outputURL" style="display:none">
+				<label for="outputEncodedString" >
+					Share this URL with anyone you want:
+					<textarea id="outputEncodedString" readonly="" placeholder="Your encoded string will appear here."></textarea>
+				</label>
+			</div>
+		<div>
+	  
     </main>
 
-    <script>
+    <footer class="container">
+      <small>&copy; <span id="currentYear"></span> ShowIt.Online All rights reserved.</small>
+    </footer>
+	</div>
+	<script src="https://unpkg.com/markdown-it@8.4.2/dist/markdown-it.min.js"></script>
+	<script>
         // --- UI Elements and Event Listeners ---
         // Get references to all necessary DOM elements
         const inputString = document.getElementById('inputString');
         const encodeButton = document.getElementById('encodeButton');
         const outputEncodedString = document.getElementById('outputEncodedString');
+		const outputURL = document.getElementById('outputURL');
 
 
         // Event listener for the Encode button click
         encodeButton.addEventListener('click', () => {
+		
             const str = inputString.value.trim(); // Get and trim the input string
             if (str) {
+			
                 // Use encodeURIComponent for URL-safe encoding
                 var encoded = encodeURIComponent(str);
 				encoded = "https://showit.online/#!url=" + encoded + "&theme=dark";
                 outputEncodedString.value = encoded; // Display the encoded string
-				var url = window.location.href;
-				url = encoded;
-				if(url.includes("#!")){
-					const queryParams = new URLSearchParams(url.split("#!")[1]);
-					const decoded = decodeURIComponent(queryParams.get("url"));
-					console.log(decoded)
-					console.log(queryParams.get("theme"))
-				}
+				outputURL.style.display = "block";
+			
             }
         });
-
-        // Pre-fill the input with an example GitHub raw URL when the window loads
-        window.onload = () => {
-            inputString.value = "https://raw.githubusercontent.com/amiune/amiune.github.io/refs/heads/master/cv/hernan-amiune-se-cv-one-page.md?param=value with spaces&another=test";
+		
+		
+        function reload_page(){
+            document.getElementById('currentYear').innerHTML = new Date().getFullYear();;
+			inputString.value = "https://raw.githubusercontent.com/amiune/showit.online/refs/heads/main/README.md";
+			
+			var url = window.location.href;
+			if(url.includes("#!")){
+			    document.getElementById('content').style.margin = "4rem";
+			    const queryParams = new URLSearchParams(url.split("#!")[1]);
+				const decoded = decodeURIComponent(queryParams.get("url"));
+				fetch(decoded).then(async (response) => {
+					if (response.ok) {
+						text = await response.text();
+						let md = window.markdownit();
+						document.getElementById('content').innerHTML = md.render(text);
+					}
+			    })
+			}
         };
+		
+		window.addEventListener('popstate', function (event) {
+			reload_page();
+		});
+
+		reload_page();
 
     </script>
-</body>
+
+  </body>
 </html>
