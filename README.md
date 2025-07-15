@@ -135,18 +135,10 @@ Right aligned columns
 
 ## Links
 
-[link text](http://dev.nodeca.com)
-
-[link with title](http://nodeca.github.io/pica/demo/ "title text!")
-
-Autoconverted link https://github.com/nodeca/pica (enable linkify to see)
+[link text](http://www.google.com)
 
 
 ## Images
 
 ![Minion](https://octodex.github.com/images/minion.png)
-![Stormtroopocat](https://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
 
-Like links, Images also have a footnote style syntax
-
-![Alt text][id]
