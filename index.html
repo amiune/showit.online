@@ -77,8 +77,6 @@
     <footer class="container">
       <small>&copy; <span id="currentYear"></span> ShowIt.Online All rights reserved.</small>
     </footer>
-
-
 	</div>
 
   <div id="loading">
@@ -102,6 +100,7 @@
     const outputEncodedString = document.getElementById('outputEncodedString');
     const outputURLSection = document.getElementById('outputURLSection');
     const copyUrlButton = document.getElementById('copyUrlButton');
+    document.getElementById('currentYear').innerHTML = new Date().getFullYear();
 
 
     // Event listener for the Encode button click
@@ -130,33 +129,57 @@
             }
     });
 
+    function isValidUrl(urlString) {
+      try {
+        new URL(urlString); // Attempt to create a URL object
+        return true; // If successful, it's a valid URL
+      } catch (e) {
+        return false; // If it throws an error, it's not a valid URL
+      }
+    }
+
+    function showContent(){
+      content.style.display = "block";
+      document.getElementById('loading').style.display = "none";
+    }
+
+    function showError404() {
+      // Error 404
+      // https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics
+      const metaRobots = document.createElement('meta');
+      metaRobots.name = 'robots';
+      metaRobots.content = 'noindex';
+      document.head.appendChild(metaRobots);
+      content.innerHTML = md.render("# 404: Page not found");
+      showContent();
+    }
+
 
     function reload_page(){
-      document.getElementById('currentYear').innerHTML = new Date().getFullYear();
       var url = window.location.href;
       if(url.includes("#!")){
         content.style.margin = "4rem";
         const queryParams = new URLSearchParams(url.split("#!")[1]);
         const decoded = decodeURIComponent(queryParams.get("url"));
+        if (!isValidUrl(decoded)) {
+          showError404();
+          return;
+        }
         fetch(decoded).then(async (response) => {
           if (response.ok) {
             text = await response.text();
             let md = window.markdownit();
             content.innerHTML = md.render(text);
+            showContent();
           }
           else{
-                // Error 404
-                // https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics
-                const metaRobots = document.createElement('meta');
-                metaRobots.name = 'robots';
-                metaRobots.content = 'noindex';
-                document.head.appendChild(metaRobots);
-                content.innerHTML = md.render("# 404: Page not found");
+            showError404();
           }
         })
       }
-      content.style.display = "block";
-      document.getElementById('loading').style.display = "none";
+      else{
+        showContent();
+      }
     };
 
     window.addEventListener('popstate', function (event) {
