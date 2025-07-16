@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ShowIt.Online</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.min.css" />
+    <style>
+	  header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header nav ul {
+        margin: 0;
+      }
+	  main {
+        margin-top: 2rem;
+		max-width: 800px;
+      }
+	  .hero p{
+	  max-width: 600px;
+	  margin: 0 auto;
+	  }
+      footer {
+        text-align: center;
+        margin-top: 2rem;
+      }
+    </style>  
+  </head>
+  <body>
+    <header class="container">
+      <a href="/" class="contrast">ShowIt.Online</a>
+      <nav>
+        <ul>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="contact.html">Ask 4a feature</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container">
+      
+      <h1>Ask for a new feature</h1>
+      <br/><br/>
+
+      <section>
+        <h3>You can contact me directly</h3>
+        <p>Send me an email to <a href="#">amiune@gmail.com</a> or contact me on <a href="https://www.linkedin.com/in/amiune/">linkedin</a></p>
+      </section>
+
+      <section>
+        <h3>You can add an issue or pull request on github</h3>
+        <p>Add an issue <a href="https://github.com/amiune/showit.online/issues">here</a></p>
+      </section>
+
+    </main>
+
+    <footer class="container">
+      <small>&copy; <span id="currentYear"></span> ShowIt.Online All rights reserved.</small>
+    </footer>
+
+    <script>
+      document.getElementById('currentYear').innerHTML = new Date().getFullYear();
+    </script>
+  </body>
+</html>

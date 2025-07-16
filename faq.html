@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ShowIt.Online</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.min.css" />
+    <style>
+	  header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header nav ul {
+        margin: 0;
+      }
+	  main {
+        margin-top: 2rem;
+		max-width: 800px;
+      }
+	  .hero p{
+	  max-width: 600px;
+	  margin: 0 auto;
+	  }
+      footer {
+        text-align: center;
+        margin-top: 2rem;
+      }
+    </style>  
+  </head>
+  <body>
+    <header class="container">
+      <a href="/" class="contrast">ShowIt.Online</a>
+      <nav>
+        <ul>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="contact.html">Ask 4a feature</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container">
+      
+        <h1>Frequently Asked Questions</h1>
+        <br/><br/>
+      
+      <section>
+        <h3>What is ShowIt.Online?</h3>
+        <p>A pretty and easy way to share markdown files. See an example <a href="https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2Famiune%2Fshowit.online%2Frefs%2Fheads%2Fmain%2FREADME.md">here</a></p>
+      </section>
+      
+      <section>
+        <h3>How do I use ShowIt.Online?</h3>
+        <p>Just copy and paste <a href="/">here</a> the url of your markdown file from github and get a url to share it in a pretty and easy way.</p>
+      </section>
+      
+      <section>
+        <h3>Is ShowIt.Online free to use?</h3>
+        <p>Yes! ShowIt.Online is free and open-source under the MIT License. You can read the code that runs this site <a href="https://github.com/amiune/showit.online">here</a></p>
+      </section>
+      
+      <section>
+        <h3>Why and how can be free forever with no ads?</h3>
+        <p>This project is so simple that needs no servers so it has no cost to mantain.</p>
+      </section>
+
+      <section>
+        <h3>Can I ask for a new feature?</h3>
+        <p>Yes! Go <a href="contact.html">here</a> for more info.</p>
+      </section>
+
+    </main>
+
+    <footer class="container">
+      <small>&copy; <span id="currentYear"></span> ShowIt.Online All rights reserved.</small>
+    </footer>
+
+    <script>
+      document.getElementById('currentYear').innerHTML = new Date().getFullYear();
+    </script>
+  </body>
+</html>

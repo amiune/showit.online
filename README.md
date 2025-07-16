@@ -7,9 +7,9 @@ Ideal to share study notes, creating a landing page or even a mini website.
 ✔️ No ads and free forever
 
 
-# Here are some examples of markdown elements you can use:
+## Here are some examples of how markdown elements are displayed (you can find the code [here](https://github.com/amiune/showit.online/blob/main/README.md)):
 
-# h1 Heading 8-)
+# h1 Heading
 ## h2 Heading
 ### h3 Heading
 #### h4 Heading
@@ -24,19 +24,6 @@ ___
 ---
 
 ***
-
-
-## Typographic replacements
-
-Enable typographer option to see result.
-
-(c) (C) (r) (R) (tm) (TM) (p) (P) +-
-
-test.. test... test..... test?..... test!....
-
-!!!!!! ???? ,,  -- ---
-
-"Smartypants, double quotes" and 'single quotes'
 
 
 ## Emphasis
@@ -135,7 +122,7 @@ Right aligned columns
 
 ## Links
 
-[link text](http://www.google.com)
+[link text](http://www.github.com)
 
 
 ## Images

@@ -7,18 +7,18 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.min.css" />
     <style>
 	  header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      header nav ul {
-        margin: 0;
-      }
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header nav ul {
+      margin: 0;
+    }
 	  main {
-        margin-top: 2rem;
-        text-align: center;
-		max-width: 800px;
-      }
+      margin-top: 2rem;
+      text-align: center;
+      max-width: 800px;
+    }
 	  .hero p{
 	  max-width: 600px;
 	  margin: 0 auto;
@@ -26,108 +26,146 @@
 	  .form{
 	     margin-top: 1rem;
 	  }
-      footer {
-        text-align: center;
-        margin-top: 2rem;
-      }
-	  #outputURL{
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+    }
+	  #outputURLSection{
 	      margin-top: 1rem;
 	  }
     </style>
   </head>
   <body>
 
-    <div id="content">
-	<header class="container">
-      <a href="#" class="contrast">ShowIt.Online</a>
+  <div id="content" style="display:none">
+	  <header class="container">
+      <a href="/" class="contrast">ShowIt.Online</a>
       <nav>
         <ul>
-          <li><a href="#faq">FAQ</a></li>
-          <li><a href="#about">About</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="contact.html">Ask 4a feature</a></li>
         </ul>
       </nav>
     </header>
 	
-	<main class="container">
-        <div class="hero">
+	  <main class="container">
+      <div class="hero">
 			<h1>A pretty and easy way to share markdown files</h1>
 			<p>
 			Just copy and paste the url of your markdown file from github and get a url to share it in a pretty and easy way. 
 			Ideal to share study notes, creating a landing page or even a mini website.
 			</p>
-			<p>✔️ No ads and free forever</p>
+			<p>✔️ No ads and free forever (<a href="faq.html">why and how?</a>)</p>
+      <p>✔️ Open Source (<a href="https://github.com/amiune/showit.online">read the code</a>)</p>
 	    </div>
 
-        <div class="form">
+      <div class="form">
 			<textarea id="inputString" 
 			placeholder="Paste your markdown url, like: https://raw.githubusercontent.com/amiune/showit.online/refs/heads/main/README.md"></textarea>
 			<button id="encodeButton">Create my URL to share</button>
-			<div id="outputURL" style="display:none">
+			<div id="outputURLSection" style="display:none">
 				<label for="outputEncodedString" >
 					Share this URL with anyone you want:
-					<textarea id="outputEncodedString" readonly="" placeholder="Your encoded string will appear here."></textarea>
+					<textarea id="outputEncodedString" readonly="" placeholder=""></textarea>
 				</label>
+        <button id="copyUrlButton">Copy url to clipboard</button>
 			</div>
-		<div>
+		  <div>
 	  
     </main>
 
     <footer class="container">
       <small>&copy; <span id="currentYear"></span> ShowIt.Online All rights reserved.</small>
     </footer>
+
+
 	</div>
+
+  <div id="loading">
+    <section>
+          <div id="content">
+            <section id="progress">
+              <h1>Loading Content</h1>
+              <progress id="progress-2"></progress>
+            </section>
+          </div>
+        </section>
+  </div>
+
 	<script src="https://unpkg.com/markdown-it@8.4.2/dist/markdown-it.min.js"></script>
 	<script>
-        // --- UI Elements and Event Listeners ---
-        // Get references to all necessary DOM elements
-        const inputString = document.getElementById('inputString');
-        const encodeButton = document.getElementById('encodeButton');
-        const outputEncodedString = document.getElementById('outputEncodedString');
-		const outputURL = document.getElementById('outputURL');
+    // --- UI Elements and Event Listeners ---
+    // Get references to all necessary DOM elements
+    const content = document.getElementById('content');
+    const inputString = document.getElementById('inputString');
+    const encodeButton = document.getElementById('encodeButton');
+    const outputEncodedString = document.getElementById('outputEncodedString');
+    const outputURLSection = document.getElementById('outputURLSection');
+    const copyUrlButton = document.getElementById('copyUrlButton');
 
 
-        // Event listener for the Encode button click
-        encodeButton.addEventListener('click', () => {
-		
-            const str = inputString.value.trim(); // Get and trim the input string
-            if (str) {
-			
-                // Use encodeURIComponent for URL-safe encoding
-                var encoded = encodeURIComponent(str);
-				encoded = "https://showit.online/#!url=" + encoded + "&theme=dark";
-                outputEncodedString.value = encoded; // Display the encoded string
-				outputURL.style.display = "block";
-			
+    // Event listener for the Encode button click
+    encodeButton.addEventListener('click', () => {
+      const str = inputString.value.trim(); // Get and trim the input string
+      if (str) {
+        // Use encodeURIComponent for URL-safe encoding
+        var encoded = encodeURIComponent(str);
+        encoded = "https://showit.online/#!url=" + encoded + "&theme=dark";
+        outputEncodedString.value = encoded; // Display the encoded string
+        outputURLSection.style.display = "block";
+      }
+    });
+
+    copyUrlButton.addEventListener('click', () => {
+            const textarea = document.getElementById('outputEncodedString');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                const successful = document.execCommand('copy');
+                const msg = successful ? 'URL copied successfully!' : 'Failed to copy URL.';
+                copyUrlButton.innerText = msg;
+            } catch (err) {
+                copyUrlButton.innerText = "Error when copying the url.";
             }
-        });
-		
-		
-        function reload_page(){
-            document.getElementById('currentYear').innerHTML = new Date().getFullYear();;
-			inputString.value = "https://raw.githubusercontent.com/amiune/showit.online/refs/heads/main/README.md";
-			
-			var url = window.location.href;
-			if(url.includes("#!")){
-			    document.getElementById('content').style.margin = "4rem";
-			    const queryParams = new URLSearchParams(url.split("#!")[1]);
-				const decoded = decodeURIComponent(queryParams.get("url"));
-				fetch(decoded).then(async (response) => {
-					if (response.ok) {
-						text = await response.text();
-						let md = window.markdownit();
-						document.getElementById('content').innerHTML = md.render(text);
-					}
-			    })
-			}
-        };
-		
-		window.addEventListener('popstate', function (event) {
-			reload_page();
-		});
+    });
 
-		reload_page();
 
-    </script>
+    function reload_page(){
+      document.getElementById('currentYear').innerHTML = new Date().getFullYear();
+      var url = window.location.href;
+      if(url.includes("#!")){
+        content.style.margin = "4rem";
+        const queryParams = new URLSearchParams(url.split("#!")[1]);
+        const decoded = decodeURIComponent(queryParams.get("url"));
+        fetch(decoded).then(async (response) => {
+          if (response.ok) {
+            text = await response.text();
+            let md = window.markdownit();
+            content.innerHTML = md.render(text);
+          }
+          else{
+                // Error 404
+                // https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics
+                const metaRobots = document.createElement('meta');
+                metaRobots.name = 'robots';
+                metaRobots.content = 'noindex';
+                document.head.appendChild(metaRobots);
+                content.innerHTML = md.render("# 404: Page not found");
+          }
+        })
+      }
+      content.style.display = "block";
+      document.getElementById('loading').style.display = "none";
+    };
+
+    window.addEventListener('popstate', function (event) {
+      reload_page();
+    });
+
+    reload_page();
+
+  </script>
 
   </body>
 </html>
