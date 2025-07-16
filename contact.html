@@ -7,28 +7,35 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.min.css" />
     <style>
 	  header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      header nav ul {
-        margin: 0;
-      }
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header nav ul {
+      margin: 0;
+    }
 	  main {
-        margin-top: 2rem;
-		max-width: 800px;
-      }
+      margin-top: 2rem;
+      max-width: 800px;
+    }
 	  .hero p{
 	  max-width: 600px;
 	  margin: 0 auto;
 	  }
-      footer {
-        text-align: center;
-        margin-top: 2rem;
-      }
-    </style>  
+	  .form{
+	     margin-top: 1rem;
+	  }
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+    }
+	  #outputURLSection{
+	      margin-top: 1rem;
+	  }
+    </style>
   </head>
   <body>
+    <div id="content">
     <header class="container">
       <a href="/" class="contrast">ShowIt.Online</a>
       <nav>
@@ -59,7 +66,7 @@
     <footer class="container">
       <small>&copy; <span id="currentYear"></span> ShowIt.Online All rights reserved.</small>
     </footer>
-
+    </div>
     <script>
       document.getElementById('currentYear').innerHTML = new Date().getFullYear();
     </script>
