@@ -60,8 +60,8 @@
 	    </div>
 
       <div class="form">
-			<textarea id="inputString" 
-			placeholder="Paste your markdown url, like: https://raw.githubusercontent.com/amiune/showit.online/refs/heads/main/README.md"></textarea>
+			<input id="githubusername" type="text" placeholder="Your GitHub username, like: amiune" value="amiune" />
+      <input id="githubrepo" type="text" placeholder="Your GitHub repo, like: showit.online" value="nano-blog" />
 			<button id="encodeButton">Create my URL to share</button>
 			<div id="outputURLSection" style="display:none">
 				<label for="outputEncodedString" >
@@ -92,10 +92,18 @@
 
 	<script src="https://unpkg.com/markdown-it@8.4.2/dist/markdown-it.min.js"></script>
 	<script>
+
+
+    // --- Global Variables ---
+    var GITHUB_USER = "";
+    var GITHUB_REPO = "";
+    var GITHUB_REPO_BRANCH = "";
+
     // --- UI Elements and Event Listeners ---
     // Get references to all necessary DOM elements
     const content = document.getElementById('content');
-    const inputString = document.getElementById('inputString');
+    const githubusername = document.getElementById('githubusername');
+    const githubrepo = document.getElementById('githubrepo');
     const encodeButton = document.getElementById('encodeButton');
     const outputEncodedString = document.getElementById('outputEncodedString');
     const outputURLSection = document.getElementById('outputURLSection');
@@ -104,17 +112,25 @@
 
 
     // Event listener for the Encode button click
+    // This will encode the input string and display the encoded URL
     encodeButton.addEventListener('click', () => {
-      const str = inputString.value.trim(); // Get and trim the input string
-      if (str) {
+      //const str = inputString.value.trim(); // Get and trim the input string
+      const githubUsernameValue = githubusername.value.trim();
+      const githubRepoValue = githubrepo.value.trim();
+      if (githubUsernameValue && githubRepoValue) {
         // Use encodeURIComponent for URL-safe encoding
-        var encoded = encodeURIComponent(str);
-        encoded = "https://showit.online/#!url=" + encoded;
-        outputEncodedString.value = encoded; // Display the encoded string
+        //var encoded = encodeURIComponent(str);
+        //encoded = "https://showit.online/#!url=" + encoded;
+        //outputEncodedString.value = encoded; // Display the encoded string
+
+        var encoded = encodeURIComponent(githubUsernameValue + "/" + githubRepoValue);
+        outputEncodedString.value = "https://showit.online/#!ghrepo=" + encoded;
         outputURLSection.style.display = "block";
       }
     });
 
+    // Event listener for the Copy URL button click
+    // This will copy the encoded URL to the clipboard
     copyUrlButton.addEventListener('click', () => {
             const textarea = document.getElementById('outputEncodedString');
             textarea.select();
@@ -129,6 +145,19 @@
             }
     });
 
+    function slug_to_title(slug) {
+      // The first part of the slug is used to save the date
+      // this allows to order the posts
+      slug = slug.substring(slug.indexOf("-")+1);
+      let words = slug.split('-');
+      for (let i = 0; i < words.length; i++) {
+        let word = words[i];
+        words[i] = word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return words.join(' ');
+    }
+
+    // helper function to validate if a string is a valid URL
     function isValidUrl(urlString) {
       try {
         new URL(urlString); // Attempt to create a URL object
@@ -138,11 +167,14 @@
       }
     }
 
+    // Replace the loading screen for the content
     function showContent(){
       content.style.display = "block";
       document.getElementById('loading').style.display = "none";
     }
 
+    // Function to handle the 404 error
+    // This will set the meta robots tag to noindex and display a 404 message
     function showError404() {
       // Error 404
       // https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics
@@ -154,18 +186,10 @@
       showContent();
     }
 
-
-    function reload_page(){
-      var url = window.location.href;
-      if(url.includes("#!")){
-        content.style.margin = "4rem";
-        const queryParams = new URLSearchParams(url.split("#!")[1]);
-        const decoded = decodeURIComponent(queryParams.get("url"));
-        if (!isValidUrl(decoded)) {
-          showError404();
-          return;
-        }
-        fetch(decoded).then(async (response) => {
+    // Function to load a markdown file and display its content
+    function loadMarkdownContent(url) {
+      if(isValidUrl(url)){
+        fetch(url).then(async (response) => {
           if (response.ok) {
             text = await response.text();
             let md = window.markdownit();
@@ -175,7 +199,94 @@
           else{
             showError404();
           }
-        })
+        });
+      }
+      else{
+        showError404();
+      }
+    }
+
+    function fileFilter(item) {
+      return item.type === 'blob' && (item.path.endsWith('.md') || item.path.endsWith('.ipynb'));
+    }
+
+    async function getAllRepoFiles(owner, repo) {
+      // 1. Get the branch to find the latest commit SHA
+      const branchUrl = `https://api.github.com/repos/${owner}/${repo}/branches`;
+      const refRes = await fetch(branchUrl);
+      if (!refRes.ok) throw new Error(`Failed to fetch branch: ${refRes.status}`);
+      const refData = await refRes.json();
+      const treeSha = refData[0].commit.sha;
+      console.log(`Branch: ${refData[0].name}, Tree SHA: ${treeSha}`);
+      GITHUB_REPO_BRANCH = refData[0].name; // Update global variable with the branch name
+
+      // 2. Get the tree recursively
+      const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`;
+      const treeRes = await fetch(treeUrl);
+      if (!treeRes.ok) throw new Error(`Failed to fetch tree: ${treeRes.status}`);
+      // 3. Get only file entries (type === 'blob')
+      const treeData = await treeRes.json();
+      const files = treeData.tree.filter(fileFilter);
+
+      return files; // Includes path, sha, url, size, etc.
+    }
+
+    function loadGitHubRepo(repoUrl) {
+      var tmp = repoUrl.split("/");
+      GITHUB_USER = tmp[0];
+      GITHUB_REPO = tmp[1];
+      // Show blog list of posts
+      
+      const REVERSE_ORDER = false;
+      const REPO_TITLE = "This is my title: " + GITHUB_REPO;
+      getAllRepoFiles(GITHUB_USER, GITHUB_REPO)
+        .then((files) => {
+            const BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
+            if(REVERSE_ORDER)files.reverse();
+            let list = document.createElement("ul");
+            // show posts from oldest to newest
+            for (let i = 0; i < files.length; i++) {
+                const element = files[i];
+                let li = document.createElement('li');
+                let path = element.path;
+                var lastIndex = path.lastIndexOf('/');
+                var fileName = path.substr(lastIndex+1);
+                let slug = fileName.replace(".md","").replace(".ipynb","");
+                let a = document.createElement('a');
+                a.innerText = path;//slug_to_title(slug);
+                a.setAttribute("href", BASE_URL + encodeURIComponent(path));
+                li.appendChild(a);
+                list.appendChild(li);
+            }
+            // Create a div to hold the title and list
+            let div = document.createElement('div');
+            let h1 = document.createElement('h1');
+            document.title = REPO_TITLE;
+            h1.innerText = REPO_TITLE;
+            div.appendChild(h1);
+            div.appendChild(list);
+            document.getElementById('content').innerHTML = div.innerHTML;
+            showContent();
+        });
+      
+    }
+
+
+    // Function to reload the page and fetch content based on the URL
+    function reload_page(){
+      var url = window.location.href;
+      if(url.includes("#!")){
+        content.style.margin = "4rem";
+        const queryParams = new URLSearchParams(url.split("#!")[1]);
+        if (queryParams.has("ghrepo")) {
+          var repoUrl = queryParams.get("ghrepo");
+          repoUrl = decodeURIComponent(repoUrl);
+          loadGitHubRepo(repoUrl);
+        }
+        else if (queryParams.has("url") === false) {
+          var decodedUrl = decodeURIComponent(queryParams.get("url"));
+          loadMarkdownContent(decodedUrl);
+        }
       }
       else{
         showContent();
