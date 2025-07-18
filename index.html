@@ -20,9 +20,17 @@
       max-width: 800px;
     }
 	  .hero p{
-	  max-width: 600px;
-	  margin: 0 auto;
+      max-width: 600px;
+      margin: 0 auto;
 	  }
+    .form{
+       margin-top: 1rem;
+    }
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 1rem;
+    }
     footer {
       text-align: center;
       margin-top: 2rem;
@@ -157,6 +165,7 @@
     var GITHUB_USER = "";
     var GITHUB_REPO = "";
     var GITHUB_REPO_BRANCH = "";
+    var BASE_URL = "";
     
 
     // --- UI Elements and Event Listeners ---
@@ -376,7 +385,7 @@
       const REPO_TITLE = GITHUB_REPO + " by " + GITHUB_USER;
       getAllRepoFiles(GITHUB_USER, GITHUB_REPO)
         .then((files) => {
-            var BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
+            BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
             if(REVERSE_ORDER)files.reverse();
             let htmlList = "";
             var dictOfFiles = buildNestedDict(files);
