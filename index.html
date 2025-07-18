@@ -33,6 +33,64 @@
 	  #outputURLSection{
 	      margin-top: 1rem;
 	  }
+
+    /* Beautify the index tree */
+    ul.tree {
+      list-style: none;
+      padding-left: 0;
+      margin: 50px 0 0 0;
+    }
+
+    ul.tree ul {
+      list-style: none;
+      padding-left: 1rem;
+      margin: 0;
+    }
+
+    ul.tree li {
+      margin: 0.4rem 0;
+      list-style: none;
+    }
+
+    summary {
+      list-style: none;
+    }
+
+    ul.tree li > details > summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--primary);
+      list-style: none;
+    }
+
+    ul.tree li > details > summary::before {
+      content: "📁 ";
+    }
+
+    ul.tree a {
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    ul.tree a::before {
+      content: "📄 ";
+    }
+
+    details > ul {
+      margin-left: 0.5rem;
+      padding-left: 0;
+    }
+
+    .summary-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--primary);
+    }
     </style>
   </head>
   <body>
@@ -90,14 +148,19 @@
         </section>
   </div>
 
-	<script src="https://unpkg.com/markdown-it@8.4.2/dist/markdown-it.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/notebookjs@0.8.3/notebook.min.js"></script>
 	<script>
 
+    // This use https://github.com/jsvine/notebookjs to render Jupyter Notebooks
+    // and https://github.com/markdown-it/markdown-it to render markdown files.
+    // TODO: try https://github.com/markedjs/marked/
 
     // --- Global Variables ---
     var GITHUB_USER = "";
     var GITHUB_REPO = "";
     var GITHUB_REPO_BRANCH = "";
+    var BASE_URL = "";
 
     // --- UI Elements and Event Listeners ---
     // Get references to all necessary DOM elements
@@ -231,6 +294,50 @@
       return files; // Includes path, sha, url, size, etc.
     }
 
+    function buildNestedDict(paths) {
+      const result = {};
+      for (const path of paths) {
+        const keys = path.path.split("/");
+        let current = result;
+
+        for (const key of keys) {
+          if (!(key in current)) {
+            current[key] = {};
+          }
+          current = current[key];
+        }
+      }
+      return result;
+    }
+
+    function dictToCollapsibleHTML(obj, path = "") {
+      let html = '<ul class="tree">';
+
+      for (const key in obj) {
+        const currentPath = path ? `${path}/${key}` : key;
+
+        if (Object.keys(obj[key]).length === 0) {
+          // Leaf node: use <a> inside <li>
+          const githubRawUrl = BASE_URL + encodeURIComponent(currentPath);
+          html += `<li><a href="${githubRawUrl}">${key}</a></li>`;
+        } else {
+          // Non-leaf node: use <details><summary>...</summary><ul>...</ul></details>
+          html += `
+            <li>
+              <details>
+                <summary class="summary-label">${key}</summary>
+                ${dictToCollapsibleHTML(obj[key], currentPath)}
+              </details>
+            </li>
+          `;
+        }
+      }
+
+      html += "</ul>";
+      return html;
+    }
+
+
     function loadGitHubRepo(repoUrl) {
       var tmp = repoUrl.split("/");
       GITHUB_USER = tmp[0];
@@ -238,37 +345,20 @@
       // Show blog list of posts
       
       const REVERSE_ORDER = false;
-      const REPO_TITLE = "This is my title: " + GITHUB_REPO;
+      const REPO_TITLE = GITHUB_REPO + " by " + GITHUB_USER;
       getAllRepoFiles(GITHUB_USER, GITHUB_REPO)
         .then((files) => {
-            const BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
+            BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
             if(REVERSE_ORDER)files.reverse();
-            let list = document.createElement("ul");
-            // show posts from oldest to newest
-            for (let i = 0; i < files.length; i++) {
-                const element = files[i];
-                let li = document.createElement('li');
-                let path = element.path;
-                var lastIndex = path.lastIndexOf('/');
-                var fileName = path.substr(lastIndex+1);
-                let slug = fileName.replace(".md","").replace(".ipynb","");
-                let a = document.createElement('a');
-                a.innerText = path;//slug_to_title(slug);
-                a.setAttribute("href", BASE_URL + encodeURIComponent(path));
-                li.appendChild(a);
-                list.appendChild(li);
-            }
-            // Create a div to hold the title and list
-            let div = document.createElement('div');
-            let h1 = document.createElement('h1');
+            let htmlList = "";
+            var dictOfFiles = buildNestedDict(files);
+            htmlList = dictToCollapsibleHTML(dictOfFiles);
             document.title = REPO_TITLE;
-            h1.innerText = REPO_TITLE;
-            div.appendChild(h1);
-            div.appendChild(list);
-            document.getElementById('content').innerHTML = div.innerHTML;
+            // Create a div to hold the title and list
+            let div = "<div><h1>" + REPO_TITLE + "</h1>" + htmlList + "</div>";
+            document.getElementById('content').innerHTML = div;
             showContent();
         });
-      
     }
 
 
