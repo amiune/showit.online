@@ -23,9 +23,6 @@
 	  max-width: 600px;
 	  margin: 0 auto;
 	  }
-	  .form{
-	     margin-top: 1rem;
-	  }
     footer {
       text-align: center;
       margin-top: 2rem;
@@ -108,18 +105,18 @@
 	
 	  <main class="container">
       <div class="hero">
-			<h1>A pretty and easy way to share markdown files</h1>
+			<h1>An automatic website for your github<br/>markdowns and jupyter notebooks</h1>
 			<p>
-			Just copy and paste the url of your markdown file from github and get a url to share it in a pretty and easy way. 
-			Ideal to share study notes, creating a landing page or even a mini website.
+			Just write yout github username and repo and get a url to share in a pretty and easy way. 
+			Ideal to share study notes or a mini blog or site.
 			</p>
 			<p>✔️ No ads and free forever (<a href="faq.html">why and how?</a>)</p>
       <p>✔️ Open Source (<a href="https://github.com/amiune/showit.online">read the code</a>)</p>
 	    </div>
 
       <div class="form">
-			<input id="githubusername" type="text" placeholder="Your GitHub username, like: amiune" value="amiune" />
-      <input id="githubrepo" type="text" placeholder="Your GitHub repo, like: showit.online" value="nano-blog" />
+			<input id="githubusername" type="text" placeholder="Your GitHub username, like: microsoft" value="" /><br/>
+      <input id="githubrepo" type="text" placeholder="Your GitHub repo, like: AI-For-Beginners" value="" /><br/>
 			<button id="encodeButton">Create my URL to share</button>
 			<div id="outputURLSection" style="display:none">
 				<label for="outputEncodedString" >
@@ -160,7 +157,7 @@
     var GITHUB_USER = "";
     var GITHUB_REPO = "";
     var GITHUB_REPO_BRANCH = "";
-    var BASE_URL = "";
+    
 
     // --- UI Elements and Event Listeners ---
     // Get references to all necessary DOM elements
@@ -230,6 +227,36 @@
       }
     }
 
+    function convertRelativeToAbsolute(htmlString, baseUrl) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, "text/html");
+
+      // List of tag/attribute pairs to convert
+      const tagAttrPairs = [
+        ["a", "href"],
+        ["img", "src"],
+        ["script", "src"],
+        ["link", "href"],
+        ["iframe", "src"],
+        ["source", "src"],
+        ["video", "src"],
+        ["audio", "src"],
+        ["form", "action"]
+      ];
+
+      for (const [tag, attr] of tagAttrPairs) {
+        const elements = doc.querySelectorAll(`${tag}[${attr}]`);
+        elements.forEach(el => {
+          const url = el.getAttribute(attr);
+          if (url && !url.match(/^https?:\/\//) && !url.startsWith("data:") && !url.startsWith("mailto:") && !url.startsWith("#")) {
+            el.setAttribute(attr, new URL(url, baseUrl).href);
+          }
+        });
+      }
+
+      return doc.documentElement.outerHTML;
+    }
+
     // Replace the loading screen for the content
     function showContent(){
       content.style.display = "block";
@@ -256,7 +283,8 @@
           if (response.ok) {
             text = await response.text();
             let md = window.markdownit();
-            content.innerHTML = md.render(text);
+            var html = convertRelativeToAbsolute(md.render(text), url);
+            content.innerHTML = html;
             showContent();
           }
           else{
@@ -348,7 +376,7 @@
       const REPO_TITLE = GITHUB_REPO + " by " + GITHUB_USER;
       getAllRepoFiles(GITHUB_USER, GITHUB_REPO)
         .then((files) => {
-            BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
+            var BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
             if(REVERSE_ORDER)files.reverse();
             let htmlList = "";
             var dictOfFiles = buildNestedDict(files);
@@ -373,7 +401,7 @@
           repoUrl = decodeURIComponent(repoUrl);
           loadGitHubRepo(repoUrl);
         }
-        else if (queryParams.has("url") === false) {
+        else if (queryParams.has("url")) {
           var decodedUrl = decodeURIComponent(queryParams.get("url"));
           loadMarkdownContent(decodedUrl);
         }
