@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ShowIt.Online</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@next/css/pico.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css">
     <style>
 	  header {
       display: flex;
@@ -153,13 +154,20 @@
         </section>
   </div>
 
-	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ansi-up@1.0.0/dist/ansi-up.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/notebookjs@0.8.3/notebook.min.js"></script>
 	<script>
 
-    // This use https://github.com/jsvine/notebookjs to render Jupyter Notebooks
-    // and https://github.com/markdown-it/markdown-it to render markdown files.
-    // TODO: try https://github.com/markedjs/marked/
+    // Scripts used:
+    // - marked: for parsing markdown files: https://github.com/markedjs/marked
+    // - notebookjs: for parsing Jupyter notebooks: https://github.com/jsvine/notebookjs
+    // - dompurify: for sanitizing HTML content: https://github.com/cure53/DOMPurify
+    // - ansi-up: for converting ANSI escape codes to HTML: https://github.com/drudru/ansi_up
+    // - prismjs: for syntax highlighting: https://prismjs.com
 
     // --- Global Variables ---
     var GITHUB_USER = "";
@@ -193,7 +201,7 @@
         //outputEncodedString.value = encoded; // Display the encoded string
 
         var encoded = encodeURIComponent(githubUsernameValue + "/" + githubRepoValue);
-        outputEncodedString.value = "https://showit.online/#!ghrepo=" + encoded;
+        outputEncodedString.value = "https://showit.online/?ghrepo=" + encoded;
         outputURLSection.style.display = "block";
       }
     });
@@ -214,6 +222,11 @@
             }
     });
 
+    // --- Helper Functions ---
+    // Function to convert a slug to a title
+    // This will capitalize the first letter of each word in the slug
+    // and replace hyphens with spaces
+    // Example: "my-awesome-post" -> "My Awesome Post"
     function slug_to_title(slug) {
       // The first part of the slug is used to save the date
       // this allows to order the posts
@@ -236,6 +249,9 @@
       }
     }
 
+    // Function to convert relative URLs in HTML to absolute URLs
+    // This will parse the HTML string, find all elements with relative URLs,
+    // and convert them to absolute URLs based on the base URL provided
     function convertRelativeToAbsolute(htmlString, baseUrl) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, "text/html");
@@ -285,31 +301,16 @@
       showContent();
     }
 
-    // Function to load a markdown file and display its content
-    function loadMarkdownContent(url) {
-      if(isValidUrl(url)){
-        fetch(url).then(async (response) => {
-          if (response.ok) {
-            text = await response.text();
-            let md = window.markdownit();
-            var html = convertRelativeToAbsolute(md.render(text), url);
-            content.innerHTML = html;
-            showContent();
-          }
-          else{
-            showError404();
-          }
-        });
-      }
-      else{
-        showError404();
-      }
-    }
-
     function fileFilter(item) {
       return item.type === 'blob' && (item.path.endsWith('.md') || item.path.endsWith('.ipynb'));
     }
 
+    // Function to get all files from a GitHub repository
+    // This will fetch the branch, get the latest commit SHA,
+    // and then recursively get the tree of files
+    // It will return an array of file objects with their path, sha, url, size, etc.
+    // The fileFilter function is used to filter out only markdown and Jupyter notebook files
+    // The GITHUB_REPO_BRANCH global variable is updated with the branch name
     async function getAllRepoFiles(owner, repo) {
       // 1. Get the branch to find the latest commit SHA
       const branchUrl = `https://api.github.com/repos/${owner}/${repo}/branches`;
@@ -331,6 +332,9 @@
       return files; // Includes path, sha, url, size, etc.
     }
 
+    // Function to build a nested dictionary from an array of file paths
+    // This will create a nested structure where each key is a directory or file name
+    // and the value is an object representing its contents
     function buildNestedDict(paths) {
       const result = {};
       for (const path of paths) {
@@ -347,6 +351,10 @@
       return result;
     }
 
+    // Function to convert a nested dictionary to a collapsible HTML structure
+    // This will create a nested list where each key is a directory or file name
+    // and the value is a link to the file's raw content on GitHub
+    // The BASE_URL global variable is used to construct the raw URL for each file
     function dictToCollapsibleHTML(obj, path = "") {
       let html = '<ul class="tree">';
 
@@ -375,6 +383,14 @@
     }
 
 
+    // Function to load a GitHub repository and display its content
+    // This will fetch the repository files, build a nested dictionary,
+    // and then convert it to a collapsible HTML structure
+    // The BASE_URL global variable is used to construct the raw URL for each file
+    // The GITHUB_USER and GITHUB_REPO global variables are updated with the repository information
+    // The REPO_TITLE variable is used to set the document title
+    // The REVERSE_ORDER variable is used to reverse the order of the files
+    // The function will also update the content of the page with the repository title and file list
     function loadGitHubRepo(repoUrl) {
       var tmp = repoUrl.split("/");
       GITHUB_USER = tmp[0];
@@ -385,7 +401,7 @@
       const REPO_TITLE = GITHUB_REPO + " by " + GITHUB_USER;
       getAllRepoFiles(GITHUB_USER, GITHUB_REPO)
         .then((files) => {
-            BASE_URL = `https://showit.online/#!url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
+            BASE_URL = `https://showit.online/?url=https%3A%2F%2Fraw.githubusercontent.com%2F${GITHUB_USER}%2F${GITHUB_REPO}%2Frefs%2Fheads%2F${GITHUB_REPO_BRANCH}%2F`;
             if(REVERSE_ORDER)files.reverse();
             let htmlList = "";
             var dictOfFiles = buildNestedDict(files);
@@ -398,27 +414,83 @@
         });
     }
 
+    // Function to load a markdown file and display its content
+    function loadMarkdownContent(url) {
+      if(isValidUrl(url)){
+        fetch(url).then(async (response) => {
+          if (response.ok) {
+            text = await response.text();
+            //let md = window.markdownit();
+            //var html = convertRelativeToAbsolute(md.render(text), url);
+            var html = convertRelativeToAbsolute(marked.parse(text), url);
+            content.innerHTML = html;
+            showContent();
+          }
+          else{
+            showError404();
+          }
+        });
+      }
+      else{
+        showError404();
+      }
+    }
+
+    // Function to load a markdown file and display its content
+    function loadJupyterNotebookContent(url) {
+      if(isValidUrl(url)){
+        fetch(url).then(async (response) => {
+          if (response.ok) {
+            var text = await response.text();
+            var json = JSON.parse(text);
+            var notebook = nb.parse(json);
+            var html = notebook.render().outerHTML;
+            content.innerHTML = html;
+            showContent();
+          }
+          else{
+            showError404();
+          }
+        });
+      }
+      else{
+        showError404();
+      }
+    }
 
     // Function to reload the page and fetch content based on the URL
+    // This will check if the URL contains a hash fragment with parameters
+    // If it does, it will parse the parameters and load the corresponding content
+    // If the URL does not contain a hash fragment, it will show the content
+    // If the URL contains a hash fragment with a "ghrepo" parameter, it will load the GitHub repository
     function reload_page(){
       var url = window.location.href;
-      if(url.includes("#!")){
+      if(url.includes("?")){
         content.style.margin = "4rem";
-        const queryParams = new URLSearchParams(url.split("#!")[1]);
+        const queryParams = new URLSearchParams(url.split("?")[1]);
         if (queryParams.has("ghrepo")) {
           var repoUrl = queryParams.get("ghrepo");
           repoUrl = decodeURIComponent(repoUrl);
           loadGitHubRepo(repoUrl);
         }
         else if (queryParams.has("url")) {
-          var decodedUrl = decodeURIComponent(queryParams.get("url"));
-          loadMarkdownContent(decodedUrl);
+          const decodedUrl = decodeURIComponent(queryParams.get("url"));
+          if(decodedUrl.endsWith(".md")){
+            loadMarkdownContent(decodedUrl);
+          }
+          else if(url.endsWith(".ipynb")){
+            loadJupyterNotebookContent(decodedUrl);
+          }
+          if (typeof window.Prism !== "undefined") {
+            setTimeout(window.Prism.highlightAll,1000);
+          }
         }
       }
       else{
         showContent();
       }
     };
+
 
     window.addEventListener('popstate', function (event) {
       reload_page();
