@@ -251,7 +251,9 @@
     // Function to convert relative URLs in HTML to absolute URLs
     // This will parse the HTML string, find all elements with relative URLs,
     // and convert them to absolute URLs based on the base URL provided
+    // It will also handle special cases for raw GitHub URLs to show them through ShowIt.Online
     function convertRelativeToAbsolute(htmlString, baseUrl) {
+      console.log("Converting relative URLs to absolute URLs in HTML string:", htmlString);
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, "text/html");
 
@@ -269,11 +271,17 @@
       ];
 
       for (const [tag, attr] of tagAttrPairs) {
+        console.log(`Processing tag: ${tag}, attribute: ${attr}`);
         const elements = doc.querySelectorAll(`${tag}[${attr}]`);
         elements.forEach(el => {
           const url = el.getAttribute(attr);
           if (url && !url.match(/^https?:\/\//) && !url.startsWith("data:") && !url.startsWith("mailto:") && !url.startsWith("#")) {
-            el.setAttribute(attr, new URL(url, baseUrl).href);
+            const newUrl = new URL(url, baseUrl).href;
+            el.setAttribute(attr, newUrl);
+            // If the URL of a link is a raw GitHub URL, show it through ShowIt.Online
+            if(attr == "href" && newUrl.startsWith("https://raw.githubusercontent.com/")){
+              el.setAttribute(attr, "https://showit.online/?url=" + encodeURIComponent(newUrl));
+            }
           }
         });
       }
