@@ -285,6 +285,12 @@
     function showContent(){
       content.style.display = "block";
       document.getElementById('loading').style.display = "none";
+      if (typeof window.Prism !== "undefined") {
+        //setTimeout(window.Prism.highlightAll,1000);
+        window.Prism.highlightAll();
+      }
+      //setTimeout(scrollToTitle,1000);
+      scrollToTitle();
     }
 
     // Function to handle the 404 error
@@ -464,7 +470,8 @@
     function reload_page(){
       var url = window.location.href;
       if(url.includes("?")){
-        content.style.margin = "4rem";
+        content.style.marginTop = "1rem";
+        content.classList.add('container');
         if (url.includes("#")) {
           url = url.split("#")[0]; // Remove the hash part
         }
@@ -482,10 +489,7 @@
           else if(url.endsWith(".ipynb")){
             loadJupyterNotebookContent(decodedUrl);
           }
-          if (typeof window.Prism !== "undefined") {
-            setTimeout(window.Prism.highlightAll,1000);
-          }
-          setTimeout(scrollToTitle,1000);
+          
           
         }
       }
