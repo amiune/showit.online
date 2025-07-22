@@ -317,7 +317,6 @@
       if (!refRes.ok) throw new Error(`Failed to fetch branch: ${refRes.status}`);
       const refData = await refRes.json();
       const treeSha = refData[0].commit.sha;
-      console.log(`Branch: ${refData[0].name}, Tree SHA: ${treeSha}`);
       GITHUB_REPO_BRANCH = refData[0].name; // Update global variable with the branch name
 
       // 2. Get the tree recursively
@@ -466,6 +465,9 @@
       var url = window.location.href;
       if(url.includes("?")){
         content.style.margin = "4rem";
+        if (url.includes("#")) {
+          url = url.split("#")[0]; // Remove the hash part
+        }
         const queryParams = new URLSearchParams(url.split("?")[1]);
         if (queryParams.has("ghrepo")) {
           var repoUrl = queryParams.get("ghrepo");
@@ -483,6 +485,8 @@
           if (typeof window.Prism !== "undefined") {
             setTimeout(window.Prism.highlightAll,1000);
           }
+          setTimeout(scrollToTitle,1000);
+          
         }
       }
       else{
@@ -490,10 +494,29 @@
       }
     };
 
+    function scrollToTitle() {
+      var url = window.location.hash;
+      if(url.includes("#")){
+        console.log('scrollTo', url);
+        const id = url.split("#")[1];
+        const targetText = id.toLowerCase().replace(/-/g, " ");
+        const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(
+          el => el.textContent.trim().toLowerCase() === targetText
+        );
+        console.log('scrollTo', heading);
+        if (heading) {
+          heading.scrollIntoView({ behavior: 'smooth' }); // or 'auto' for instant scroll
+        }
+      }
+    }
+
 
     window.addEventListener('popstate', function (event) {
-      reload_page();
+      console.log('Popstate triggered. URL is now:', location.href);
+      
     });
+
+    window.addEventListener('hashchange', scrollToTitle);
 
     reload_page();
 
