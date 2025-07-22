@@ -470,6 +470,26 @@
       }
     }
 
+    // Function to scroll to a specific title based on the URL hash
+    // This will check if the URL contains a hash fragment with a title
+    // If it does, it will find the corresponding heading element and scroll to it
+    // The title is matched by converting the hash to lowercase and replacing hyphens with spaces
+    function scrollToTitle() {
+      var url = window.location.hash;
+      if(url.includes("#")){
+        console.log('scrollTo', url);
+        const id = url.split("#")[1];
+        const targetText = id.toLowerCase().replace(/[^a-zA-Z0-9]/g, "");;
+        const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(
+          el => el.textContent.trim().toLowerCase().replace(/[^a-zA-Z0-9]/g, "") === targetText
+        );
+        console.log('scrollTo', heading);
+        if (heading) {
+          heading.scrollIntoView({ behavior: 'smooth' }); // or 'auto' for instant scroll
+        }
+      }
+    }
+
     // Function to reload the page and fetch content based on the URL
     // This will check if the URL contains a hash fragment with parameters
     // If it does, it will parse the parameters and load the corresponding content
@@ -505,28 +525,6 @@
         showContent();
       }
     };
-
-    function scrollToTitle() {
-      var url = window.location.hash;
-      if(url.includes("#")){
-        console.log('scrollTo', url);
-        const id = url.split("#")[1];
-        const targetText = id.toLowerCase().replace(/-/g, " ");
-        const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(
-          el => el.textContent.trim().toLowerCase() === targetText
-        );
-        console.log('scrollTo', heading);
-        if (heading) {
-          heading.scrollIntoView({ behavior: 'smooth' }); // or 'auto' for instant scroll
-        }
-      }
-    }
-
-
-    window.addEventListener('popstate', function (event) {
-      console.log('Popstate triggered. URL is now:', location.href);
-      
-    });
 
     window.addEventListener('hashchange', scrollToTitle);
 
